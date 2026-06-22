@@ -1,4 +1,3 @@
-#TODO write a description for this script
 #@ginintaxas
 #@category KMDF
 try:
@@ -21,7 +20,6 @@ symbolTable = currentProgram.getSymbolTable()
 
 #return address of the call to wdf version bind
 def get_vb_ref():
-
     function_name = "WdfVersionBind"
     symbols = symbolTable.getSymbols(function_name)
     if symbols.hasNext():
@@ -37,7 +35,6 @@ def get_vb_ref():
     return None
 
 def find_wdf_bind_info_addr(vb_addr):
-    print(vb_addr)
     addr = None
     cur_instr = listing.getInstructionAt(vb_addr)
     for instr_count in range(30):
@@ -53,7 +50,7 @@ def find_wdf_bind_info_addr(vb_addr):
     return wdf_bind_addr
     
 def extract_wdffunc_ptr(bind_info_addr):
-    print(bind_info_addr)
+    print(f"found wdf bind info address: {bind_info_addr}")
     all_dt = dtm.getAllDataTypes()
     for dt in all_dt:
         if dt.getName() == "WDF_BIND_INFO":
@@ -67,7 +64,9 @@ def extract_wdffunc_ptr(bind_info_addr):
             func_tbl_ptr_data = data.getComponentContaining(0x20)
             if func_tbl_ptr_data.isPointer():
                 return func_tbl_ptr_data.getValue()
-    return None
+            else:
+                raise ValueError("Couldnt extract the function table pointer value")
+    raise ValueError("WDF_BIND_INFO not found, did you import the correct data types?")
 
 def get_wdffunc_addr():
     vb_call_addr = get_vb_ref().getFromAddress()
@@ -85,10 +84,13 @@ def resolve_func_addrs(tableptr_address):
                 listing.clearCodeUnits(tableptr_address, tableptr_address.add(7), True)
                 func_ptr_type = PointerDataType(dt, dtm)
                 listing.createData(tableptr_address, func_ptr_type)
+            return
+    raise ValueError("WDFFUNCTIONS not found, did you import the correct data types?")
 
 if __name__ == "__main__":
+    print("resolving function names")
     tblptr_addr = get_wdffunc_addr()
-    print(tblptr_addr)
+    print(f"found function table address: {tblptr_addr}")
     resolve_func_addrs(tblptr_addr)
 
 
