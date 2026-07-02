@@ -64,7 +64,6 @@ def rename_globals(call_addr):
         global_addr = wdf_globas_sym.getToAddress()
         symbol = symbolTable.getPrimarySymbol(global_addr)
         if symbol is not None:
-            print(symbol.getName())
             symbol.setName("WDF_GLOBALS", SourceType.USER_DEFINED)
     return
 
@@ -87,7 +86,7 @@ def extract_wdffunc_ptr(bind_info_addr):
             if dt.getName() == "WDF_BIND_INFO":
                 data = listing.getDataAt(bind_info_addr)
                 current_type_name = data.getDataType().getName()
-                if not "WDF_BIND_INFO" in current_type_name:
+                if "WDF_BIND_INFO" != current_type_name:
                     listing.clearCodeUnits(
                         bind_info_addr, bind_info_addr.add(dt.getLength() - 1), True
                     )
